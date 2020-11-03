@@ -33,18 +33,15 @@ from sklearn.cluster import KMeans as KMeans_original
 
 import daal4py
 from .._utils import getFPType, get_patch_message, daal_check_version
+from daal4py.sklearn._error_messages import daal4py_message
 import logging
 
 def _validate_center_shape(X, n_centers, centers):
     """Check if centers is compatible with X and n_centers"""
     if centers.shape[0] != n_centers:
-        raise ValueError(
-            f"The shape of the initial centers {centers.shape} does not "
-            f"match the number of clusters {n_centers}.")
+        raise ValueError(daal4py_message.get_the_shape_of_the_initial_centers_does_not_match_the_number_of_clusters(centers.shape, n_centers))
     if centers.shape[1] != X.shape[1]:
-        raise ValueError(
-            f"The shape of the initial centers {centers.shape} does not "
-            f"match the number of features of the data {X.shape[1]}.")
+        raise ValueError(daal4py_message.get_the_shape_of_the_initial_centers_does_not_match_the_number_of_features(centers.shape, X.shape[1]))
 
 def _daal_mean_var(X):
     fpt = getFPType(X)
@@ -111,9 +108,7 @@ def _daal4py_compute_starting_centroids(X, X_fptype, nClusters, cluster_centers_
         kmeans_init_res = kmeans_init.compute(X)
         centroids_ = kmeans_init_res.centroids
     else:
-        raise ValueError(
-                f"init should be either 'k-means++', 'random', a ndarray or a "
-                f"callable, got '{cluster_centers_0}' instead.")
+        raise ValueError(daal4py_message.get_init_should_be_either() % cluster_centers_0)
     if verbose:
         print("Initialization complete")
     return deterministic, centroids_
@@ -157,7 +152,7 @@ def _daal4py_k_means_predict(X, nClusters, centroids, resultsToEvaluate = 'compu
 
 def _daal4py_k_means_fit(X, nClusters, numIterations, tol, cluster_centers_0, n_init, verbose, random_state):
     if numIterations < 0:
-        raise ValueError("Wrong iterations number")
+        raise ValueError(daal4py_message.get_wrong_iterations_number())
 
     X_fptype = getFPType(X)
     abs_tol = _tolerance(X, tol) # tol is relative tolerance
@@ -242,14 +237,12 @@ def _fit(self, X, y=None, sample_weight=None):
     self._n_threads = _openmp_effective_n_threads(self._n_threads)
 
     if self.n_init <= 0:
-        raise ValueError(
-                f"n_init should be > 0, got {self.n_init} instead.")
+        raise ValueError(daal4py_message.get_n_init_should_be() % self.n_init)
 
     random_state = check_random_state(self.random_state)
 
     if self.max_iter <= 0:
-        raise ValueError(
-                f"max_iter should be > 0, got {self.max_iter} instead.")
+        raise ValueError(daal4py_message.get_max_iter_should_be() % self.max_iter)
 
     algorithm = self.algorithm
     if algorithm == "elkan" and self.n_clusters == 1:
@@ -261,8 +254,7 @@ def _fit(self, X, y=None, sample_weight=None):
         algorithm = "full" if self.n_clusters == 1 else "elkan"
 
     if algorithm not in ["full", "elkan"]:
-        raise ValueError("Algorithm must be 'auto', 'full' or 'elkan', got"
-                         " {}".format(str(algorithm)))
+        raise ValueError(daal4py_message.get_algorithm_must_be_auto_full_or_elkan() % str(algorithm))
 
 
     daal_ready = True
@@ -293,10 +285,7 @@ def _daal4py_check_test_data(self, X):
     n_samples, n_features = X.shape
     expected_n_features = self.cluster_centers_.shape[1]
     if not n_features == expected_n_features:
-        raise ValueError(
-            f"Incorrect number of features. Got {n_features} features, "
-            f"expected {expected_n_features}.")
-
+        raise ValueError(daal4py_message.get_incorrect_number_of_features_got() % (n_features,expected_n_features))
     return X
 
 

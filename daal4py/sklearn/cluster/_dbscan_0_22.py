@@ -26,12 +26,13 @@ from sklearn.cluster import DBSCAN as DBSCAN_original
 
 import daal4py
 from daal4py.sklearn._utils import (make2d, getFPType, get_patch_message)
+from daal4py.sklearn._error_messages import daal4py_message
 import logging
 
 
 def _daal_dbscan(X, eps=0.5, min_samples=5, sample_weight=None):
     if eps <= 0.0:
-        raise ValueError("eps must be positive.")
+        raise ValueError(daal4py_message.get_eps_must_be_positive())
 
     X = check_array(X, dtype=[np.float64, np.float32])
     if sample_weight is not None:
@@ -229,7 +230,7 @@ class DBSCAN(DBSCAN_original):
         X = check_array(X, accept_sparse='csr')
 
         if self.eps <= 0.0:
-            raise ValueError("eps must be positive.")
+            raise ValueError(daal4py_message.get_eps_must_be_positive())
 
         if sample_weight is not None:
             sample_weight = _check_sample_weight(sample_weight, X)

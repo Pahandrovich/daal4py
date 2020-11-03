@@ -29,6 +29,7 @@ from sklearn.cluster import KMeans as KMeans_original
 
 import daal4py
 from .._utils import getFPType, get_patch_message, daal_check_version
+from daal4py.sklearn._error_messages import daal4py_message
 import logging
 
 def _daal_mean_var(X):
@@ -92,7 +93,7 @@ def _daal4py_compute_starting_centroids(X, X_fptype, nClusters, cluster_centers_
         kmeans_init_res = kmeans_init.compute(X)
         centroids_ = kmeans_init_res.centroids
     else:
-        raise ValueError("Cluster centers should either be 'k-means++', 'random', 'deterministic' or an array")
+        raise ValueError(daal4py_message.get_cluster_centers_should_either_be())
     return deterministic, centroids_
 
 def _daal4py_kmeans_compatibility(nClusters, maxIterations, fptype = "double",
@@ -132,7 +133,7 @@ def _daal4py_k_means_predict(X, nClusters, centroids, resultsToEvaluate = 'compu
 
 def _daal4py_k_means_fit(X, nClusters, numIterations, tol, cluster_centers_0, n_init, random_state):
     if numIterations < 0:
-        raise ValueError("Wrong iterations number")
+        raise ValueError(daal4py_message.get_wrong_iterations_number())
 
     X_fptype = getFPType(X)
     abs_tol = _tolerance(X, tol) # tol is relative tolerance
@@ -192,23 +193,19 @@ def _fit(self, X, y=None, sample_weight=None):
 
     """
     if self.n_init <= 0:
-        raise ValueError("Invalid number of initializations."
-                         " n_init=%d must be bigger than zero." % self.n_init)
+        raise ValueError(daal4py_message.get_wrong_iterations_number() % self.n_init)
 
     random_state = check_random_state(self.random_state)
 
     if self.max_iter <= 0:
-        raise ValueError('Number of iterations should be a positive number,'
-                         ' got %d instead' % self.max_iter)
+        raise ValueError(daal4py_message.get_number_of_iterations_should_be_a_positive_number() %self.max_iter)
 
     if self.precompute_distances == 'auto':
         precompute_distances = False
     elif isinstance(self.precompute_distances, bool):
         precompute_distances = self.precompute_distances
     else:
-        raise ValueError("precompute_distances should be 'auto' or True/False"
-                         ", but a value of %r was passed" %
-                         self.precompute_distances)
+        raise ValueError(daal4py_message.get_precompute_distances_should_be() % self.precompute_distances)
 
     # avoid forcing order when copy_x=False
     order = "C" if self.copy_x else None
