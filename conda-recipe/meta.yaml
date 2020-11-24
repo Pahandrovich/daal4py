@@ -35,10 +35,7 @@ requirements:
         - impi-devel  # [not osx]
         - clang-tools
     run:
-        - python
-        - numpy >=1.15
         - daal >=2020.3
-        - {{ pin_compatible('numpy') }}
 
 test:
     requires:
